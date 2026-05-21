@@ -1,0 +1,28 @@
+{
+  "name": "projeto-frente-de-caixa-simples",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "tsx watch src/server.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liandersonDesen/Projeto-Frente-de-Caixa-Simples.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/liandersonDesen/Projeto-Frente-de-Caixa-Simples/issues"
+  },
+  "homepage": "https://github.com/liandersonDesen/Projeto-Frente-de-Caixa-Simples#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.1",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  }
+}
