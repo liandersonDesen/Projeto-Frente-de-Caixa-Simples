@@ -6,6 +6,7 @@ export interface Items {
   id: string;
   name: string;
   price: number;
+  stock: number;
 }
 
 export class ProdutoController {
@@ -17,12 +18,30 @@ export class ProdutoController {
   }
 
   async create(req: Request, res: Response) {
-    const { name, price } = req.body;
+    const { name, price, stock } = req.body;
 
+    if (!name || price == null || stock == null) {
+      return res.status(400).json({
+        message: "Campos obrigatórios"
+      });
+    }
+    
+    if (stock < 0) {
+      return res.status(400).json({
+        message: "Estoque inválido"
+      });
+    }
+    if (price < 0) {
+      return res.status(400).json({
+        message: "Preço inválido"
+      });
+    }
+    
     const newItems: Items = {
       id: crypto.randomUUID(),
       name: name,
-      price: price,
+      price: Number(price),
+      stock: Number(stock),
     };
 
     this.datadb.insert("produtos", newItems);
@@ -31,7 +50,7 @@ export class ProdutoController {
 
   async update(req: Request, res: Response) {
     const { id } = req.params;
-    const { name, price } = req.body;
+    const { name, price, stock } = req.body;
 
     const produtos = this.datadb.select("produtos");
     const produto = produtos.find((item) => item.id === id);
@@ -40,10 +59,40 @@ export class ProdutoController {
       return res.status(404).json({ message: "Produto não encontrado" });
     }
 
-    produto.name = name;
-    produto.price = price;
-
+    produto.name = name ?? produto.name;
+    produto.price = price ?? produto.price;
+    produto.stock = stock ?? produto.stock;
+    
     // Atualiza o arquivo json com a lista modificada
+    this.datadb.updateTable("produtos", produtos);
+
+    return res.status(200).json(produto);
+  }
+
+  async updateStock(req: Request, res: Response) {
+    const { id } = req.params;
+    const { quantity } = req.body;
+
+    const produtos = this.datadb.select("produtos");
+
+    const produto = produtos.find((item) => item.id === id);
+
+    if (!produto) {
+      return res.status(404).json({
+        message: "Produto não encontrado"
+      });
+    }
+
+    const novoEstoque = produto.stock + quantity;
+
+    if (novoEstoque < 0) {
+      return res.status(400).json({
+        message: "Estoque insuficiente"
+      });
+    }
+
+    produto.stock = novoEstoque;
+
     this.datadb.updateTable("produtos", produtos);
 
     return res.status(200).json(produto);
