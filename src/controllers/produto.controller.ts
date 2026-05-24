@@ -3,7 +3,7 @@ import { Database } from "../database/database";
 import crypto from "node:crypto";
 
 export interface Items {
-  id_produto?: number; // Mudado para bater com o banco (opcional no insert)
+  id_produto?: number; 
   codigo_barras: string;
   nome: string;
   preco_venda: number;
@@ -42,7 +42,6 @@ export class ProdutoController {
       estoque: Number(stock),
     };
 
-    // CORREÇÃO AQUI: Removemos o id_produto do INSERT. O SQLite vai gerar o número sozinho!
     await this.datadb.execute(
       "INSERT INTO produtos (codigo_barras, nome, preco_venda, estoque) VALUES (?, ?, ?, ?)",
       [newItems.codigo_barras, newItems.nome, newItems.preco_venda, newItems.estoque]
@@ -56,14 +55,12 @@ export class ProdutoController {
     const { name, price, stock } = req.body;
 
     const produtos = await this.datadb.queryAll("SELECT * FROM produtos");
-    // Ajustado para buscar por id_produto (que vem do banco) comparando com o parâmetro da URL
     const produto = produtos.find((item) => String(item.id_produto) === String(id));
 
     if (!produto) {
       return res.status(404).json({ message: "Produto não encontrado" });
     }
 
-    // Mantendo suas variáveis originais mapeadas para o padrão em português que está vindo do banco
     const novoNome = name ?? produto.nome;
     const novoPreco = price ?? produto.preco_venda;
     const novoEstoque = stock ?? produto.estoque;

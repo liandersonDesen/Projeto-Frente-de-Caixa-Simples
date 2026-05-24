@@ -7,7 +7,6 @@ const app = express();
 app.use(express.json());
 app.use(produtosRoutes);
 
-// O seu database.ts agora se conecta sozinho na primeira query que o Insomnia disparar!
 app.listen(PORT, () => {
   console.log(`Server is running http://localhost:${PORT}`);
 });
