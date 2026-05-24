@@ -15,5 +15,15 @@
       "name": "Celular A21",
       "price": 754
     }
+  ],
+  "vendas": [
+    {
+      "id": "e6334593-dec2-4ce6-931c-0c6160293ee7",
+      "produtoId": "6593c83e-96e2-4e3a-a136-2351afd71bd2",
+      "produto": "Gabinete",
+      "quantidade": 2,
+      "total": 198,
+      "data": "2026-05-24T15:50:49.463Z"
+    }
   ]
 }
