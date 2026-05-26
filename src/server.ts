@@ -3,7 +3,6 @@ import { produtosRoutes } from "./routes/produto.routers";
 import { vendaRoutes } from "./routes/venda.routers"; 
 
 const PORT = process.env.PORT ?? 3333;
-
 const app = express();
 
 app.use(express.json());
