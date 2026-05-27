@@ -1,39 +1,65 @@
-import fs from "node:fs";
-import path from "node:path";
-
-const DATABASE_PATH = path.resolve(process.cwd(), "src", "database", "db.json");
+import { open, Database as SQLiteDB } from 'sqlite';
+import sqlite3 from 'sqlite3';
+import path from 'node:path';
 
 export class Database {
-  #database: Record<string, any[]> = {};
+  private db: SQLiteDB | null = null;
 
-  constructor() {
-    try {
-      const data = fs.readFileSync(DATABASE_PATH, "utf8");
-      this.#database = JSON.parse(data);
-    } catch {
-      this.#persist();
+  // Abre a conexão com o arquivo SQLite
+  async connect() {
+    if (!this.db) {
+      this.db = await open({
+        filename: path.resolve(__dirname, '..', '..', 'database.db'), 
+        driver: sqlite3.Database
+      });
+
+      // Ativa chaves estrangeiras
+      await this.db.get("PRAGMA foreign_keys = ON");
+
+      // CRIA A TABELA EXATAMENTE COMO NO BEEKEEPER
+      await this.db.exec(`
+        CREATE TABLE IF NOT EXISTS produtos (
+          id_produto INTEGER PRIMARY KEY AUTOINCREMENT,
+          codigo_barras TEXT,
+          nome TEXT,
+          preco_venda REAL,
+          estoque INTEGER
+        );
+        CREATE TABLE IF NOT EXISTS vendas (
+            id_venda INTEGER PRIMARY KEY AUTOINCREMENT,
+            data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+            total REAL DEFAULT 0.0,
+            forma_pagamento TEXT
+        );
+        CREATE TABLE IF NOT EXISTS produtos_venda (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            venda_id INTEGER NOT NULL,
+            produto_id INTEGER NOT NULL,
+            quantidade INTEGER NOT NULL,
+            preco_unitario REAL NOT NULL,
+            valor_total REAL NOT NULL DEFAULT 0,
+            FOREIGN KEY (venda_id) REFERENCES vendas(id_venda) ON DELETE CASCADE,
+            FOREIGN KEY (produto_id) REFERENCES produtos(id_produto)
+        );
+      `);
     }
+    return this.db;
   }
 
-  #persist(): void {
-    fs.writeFileSync(DATABASE_PATH, JSON.stringify(this.#database, null, 2));
+  // Método auxiliar para facilitar as consultas (Select)
+  async queryAll(sql: string, params: any[] = []) {
+    const connection = await this.connect();
+    return connection.all(sql, params);
   }
 
-  insert(table: string, data: any): void {
-    if (Array.isArray(this.#database[table])) {
-      this.#database[table].push(data);
-    } else {
-      this.#database[table] = [data];
-    }
-    this.#persist();
+  async queryOne(sql: string, params: any[] = []) {
+    const connection = await this.connect();
+    return connection.get(sql, params);
   }
 
-  select(table: string): any[] {
-    return this.#database[table] ?? [];
-  }
-
-  updateTable(table: string, data: any[]): void {
-    this.#database[table] = data;
-    this.#persist();
+  // Método auxiliar para inserir, atualizar e deletar (Run)
+  async execute(sql: string, params: any[] = []) {
+    const connection = await this.connect();
+    return connection.run(sql, params);
   }
 }
